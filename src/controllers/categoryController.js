@@ -9,15 +9,30 @@ exports.getAllCategories = async (req, res) => {
     }
 }
 
-exports.createCategory = async(req, res) => {
+exports.createCategory = async (req, res) => {
     try{
         const { name } = req.body;
 
-        const text = 'INSERT INTO category(name) VALUES($1) RETURNING *';
-        const values = [name];
-        const result = await db.pool.query(text, values);
-        return res.status(200).json(result.rows);
+        if(!name) {
+            return res.status(422).json({ error: 'Name is required!' });
+        };
+
+        const existsResult = await db.pool.query({
+            text: 'SELECT EXISTS (SELECT * FROM category WHERE name = $1)',
+            values: [name]
+        });
+
+        if(existsResult.rows[0].exists) {
+            return res.status(400).json({ error: `Category ${name} already exists!` });
+        }
+
+        const newResult = await db.pool.query({
+            text: 'INSERT INTO category(name) VALUES($1) RETURNING *',
+            values: [name]
+        });
+
+        return res.status(201).json(newResult.rows);
     } catch(err) {
-        return res.status(500).json({ error: err.message});
+        return res.status(500).json({ error: "Hello World!"});
     }
 }
