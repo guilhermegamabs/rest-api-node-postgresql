@@ -7,6 +7,7 @@ const db = require('../services/database');
 
 router.get('/', productController.getAllProducts);
 router.post('/', productController.createProducts);
+router.put('/:id', productController.updateProduct);
 
 
 module.exports = router;

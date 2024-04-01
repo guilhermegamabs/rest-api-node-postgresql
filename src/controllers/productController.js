@@ -9,7 +9,7 @@ exports.getAllProducts = async(req, res) => {
     }
 };
 
-exports.createProducts = async(req, res) => {
+exports.createProducts = async (req, res) => {
     try {
         const { name, description, price, quantity, category_id } = req.body;
 
@@ -32,4 +32,30 @@ exports.createProducts = async(req, res) => {
     } catch(err) {
         return res.status(500).json({ error: 'hELLO WORLD!' });
     }
-}
+};
+
+exports.updateProduct = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, description, price, quantity, category_id } = req.body;
+
+        if(!id) return res.status(422).json({ error: 'ID is required!' });
+
+        const existsResult = await db.pool.query({
+            text: 'SELECT EXISTS (SELECT * FROM product WHERE id = $1)',
+            values: [id]
+        });
+
+        if(!existsResult.rows[0].exists) return res.status(400).json({ error: `Product ${name} doesn't exists!` });
+
+        const updateProduct = await db.pool.query({
+            text: 'UPDATE product SET name = $1, description = $2, price = $3, quantity = $4, category_id = $5 WHERE id = $6 RETURNING *',
+            values: [name, description, price, quantity, category_id, id]
+        });
+
+        return res.status(201).json(updateProduct.rows);
+
+    } catch(err) {
+        return res.status(500).json({ error: err.message });
+    }
+};
