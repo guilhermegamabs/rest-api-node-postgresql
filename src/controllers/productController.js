@@ -59,3 +59,20 @@ exports.updateProduct = async (req, res) => {
         return res.status(500).json({ error: err.message });
     }
 };
+
+exports.deleteProduct = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if(!id) return res.status(422).json({ error: 'ID is required!' });
+
+        const deleteProduct = await db.pool.query({
+            text: 'DELETE FROM product WHERE id = $1',
+            values: [id]
+        });
+
+        return res.status(204).json(deleteProduct.rows);
+    } catch(err) {
+        return res.status(500).json({ error: err.message });
+    }
+};
